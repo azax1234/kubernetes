@@ -1,0 +1,75 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hello-world-rest-api
+  name: hello-world-rest-api
+  namespace: default
+spec:
+  replicas: 1 #You can update the replica set instance count
+  minReadySeconds: 45 #To minimise downtime. Giving 45 seconds for new pods to spin up during deployments.Otherwise request may go t new pods but service may not be ready.
+  revisionHistoryLimit: 10
+  selector: #selector is how a pod is mapped to a deployment
+    matchLabels:
+      app: hello-world-rest-api
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: hello-world-rest-api
+    spec:
+      containers: #a pod can contain multiple containers
+      - image: in28min/hello-world-rest-api:0.0.1.RELEASE
+        imagePullPolicy: IfNotPresent #Pull from docker if not persent, the other option will be 'Always'
+        name: hello-world-rest-api
+        resources:
+          limits:
+            cpu: 500m
+            ephemeral-storage: 1Gi
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            ephemeral-storage: 1Gi
+            memory: 2Gi
+        securityContext:
+          capabilities:
+            drop:
+            - NET_RAW
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30 # give it a chance to termncate gracefuly for 30 secs
+
+---
+
+# Services.yaml
+
+#`kubectl get services hello-world-rest-api -o yaml > services.yaml`
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hello-world-rest-api
+  name: hello-world-rest-api
+  namespace: default
+spec:
+  allocateLoadBalancerNodePorts: true
+  ports:
+  - nodePort: 30376
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector: #service mapping to a pod. Service downt map to a deployment. A pod maps toa  deployment
+    app: hello-world-rest-api
+  sessionAffinity: None #sticky user sessions
+  type: LoadBalancer
