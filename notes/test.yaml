@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Pod
+metadata:
+  name: mysql
+  labels:
+    name: mysql
+    env: uat
+spec:
+  containers:
+    - name: nginx
+      image: nginx
