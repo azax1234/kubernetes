@@ -1,4 +1,4 @@
-To create a private Amazon EKS cluster, install Argo CD, and expose the Argo CD server using an Ingress controller, follow these steps:
+To create a private Amazon EKS cluster using eksctl, install Argo CD, and expose the Argo CD server using an Ingress controller, follow these steps:
 
 ### Step 1: Set Up Your AWS Environment
 
