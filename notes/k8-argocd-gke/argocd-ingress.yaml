@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: YOUR.DOMAIN.COM
+  - host: 34.118.232.205
     http:
       paths:
       - path: /
