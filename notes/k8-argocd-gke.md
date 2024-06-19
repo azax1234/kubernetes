@@ -1,4 +1,4 @@
-**Create a private GKE cluster, installed Argo CD, and exposed the Argo CD server using an Ingress controller. This setup ensures that your Argo CD UI is accessible via a custom domain with proper routing through the NGINX Ingress controller.**
+Create a private GKE cluster, installed Argo CD, and exposed the Argo CD server using an Ingress controller. This setup ensures that your Argo CD UI is accessible via a custom domain with proper routing through the NGINX Ingress controller.
 
 ### Step 1: Set Up Your GCP Environment
 
