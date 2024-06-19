@@ -1,0 +1,21 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: private-cluster
+  region: ca-central-1
+
+vpc:
+  cidr: "10.0.0.0/16"
+  clusterEndpoints:
+    publicAccess: false
+    privateAccess: true
+
+nodeGroups:
+  - name: ng-private
+    instanceType: t2.medium
+    privateNetworking: true
+    desiredCapacity: 2
+    ssh:
+      allow: true
+      publicKeyName: myNewKey

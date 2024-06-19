@@ -1,36 +1,52 @@
-**Create a private GKE cluster, installed Argo CD, and exposed the Argo CD server using an Ingress controller. This setup ensures that your Argo CD UI is accessible via a custom domain with proper routing through the NGINX Ingress controller.**
+To create a private Amazon EKS cluster, install Argo CD, and expose the Argo CD server using an Ingress controller, follow these steps:
 
-### Step 1: Set Up Your GCP Environment
+### Step 1: Set Up Your AWS Environment
 
-1. **Open Cloud Shell**: Access Google Cloud Console and open Cloud Shell.
-2. **Set Default Project**: Set your default project where you want to create the GKE cluster.
+1. **Install AWS CLI and eksctl**: Ensure you have the AWS CLI and eksctl installed. If not, install them:
+   - AWS CLI: [Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+   - eksctl: [Installation Guide](https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html#installing-eksctl)
+
+2. **Configure AWS CLI**:
    ```sh
-   gcloud config set project YOUR_PROJECT_ID
+   aws configure
    ```
 
-### Step 2: Create a Private GKE Cluster
+### Step 2: Create a Private EKS Cluster
 
-1. **Enable Required APIs**:
-   ```sh
-   gcloud services enable container.googleapis.com compute.googleapis.com
+1. **Create an EKS Cluster**:
+   Create a file named `private-cluster.yaml` for your eksctl configuration:
+   ```yaml
+   apiVersion: eksctl.io/v1alpha5
+   kind: ClusterConfig
+
+   metadata:
+     name: private-cluster
+     region: us-west-2
+
+   vpc:
+     cidr: "10.0.0.0/16"
+     clusterEndpoints:
+       publicAccess: false
+       privateAccess: true
+
+   nodeGroups:
+     - name: ng-private
+       instanceType: t3.medium
+       privateNetworking: true
+       desiredCapacity: 2
+       ssh:
+         allow: true
+         publicKeyName: my-key-pair
    ```
 
-2. **Create the GKE Cluster**:
+   Create the cluster:
    ```sh
-   gcloud container clusters create my-argo-cluster \
-       --zone us-central1-a \
-       --enable-ip-alias \
-       --enable-private-nodes \
-       --master-ipv4-cidr 172.16.0.32/28 \
-       --create-subnetwork name=my-subnet \
-       --enable-master-authorized-networks \
-       --master-authorized-networks 0.0.0.0/0 \
-       --enable-private-endpoint
+   eksctl create cluster -f private-cluster.yaml
    ```
 
-3. **Get Cluster Credentials**:
+2. **Update kubeconfig**:
    ```sh
-   gcloud container clusters get-credentials my-argo-cluster --zone us-central1-a
+   aws eks --region us-west-2 update-kubeconfig --name private-cluster
    ```
 
 ### Step 3: Install Argo CD
@@ -101,4 +117,4 @@
 2. **Access the UI**: Open a web browser and navigate to `http://YOUR.DOMAIN.COM`. Log in with the username `admin` and the password retrieved in the previous step.
 
 ### Summary
-You've created a private GKE cluster, installed Argo CD, and exposed the Argo CD server using an Ingress controller. This setup ensures that your Argo CD UI is accessible via a custom domain with proper routing through the NGINX Ingress controller.
+You've created a private EKS cluster, installed Argo CD, and exposed the Argo CD server using an Ingress controller. This setup ensures that your Argo CD UI is accessible via a custom domain with proper routing through the NGINX Ingress controller. Make sure to replace `YOUR.DOMAIN.COM` with your actual domain name.
