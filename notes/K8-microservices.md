@@ -1,6 +1,7 @@
 
-### Deploying services
+###  Deploying services
 -----------------------
+```sh
 ubuntu@ip-172-31-15-80:~/devops/projects$ cd microservices/
 ubuntu@ip-172-31-15-80:~/devops/projects/microservices$ ls
 01-currency-exchange-microservice-basic  02-currency-conversion-microservice-basic  docker-compose.yml  ingress.yaml  readme.md
@@ -38,11 +39,12 @@ deployment.apps/currency-exchange     0/1     1            0           103s
 NAME                                             DESIRED   CURRENT   READY   AGE
 replicaset.apps/currency-conversion-846d8754fd   2         2         1       68s
 replicaset.apps/currency-exchange-59f85d9b8b     1         1         0       103s
-# Now hit the urls
+```
+###  Now hit the urls
 
 http://104.196.36.186:8000/currency-exchange/from/EUR/to/INR
 
-# Response
+###  Response
 {
   "id": 10002,
   "from": "EUR",
@@ -54,7 +56,7 @@ http://104.196.36.186:8000/currency-exchange/from/EUR/to/INR
 
 http://34.23.188.7:8100/currency-conversion/from/EUR/to/INR/quantity/10
 
-# Response
+###  Response
 {
   "id": 10002,
   "from": "EUR",
@@ -67,38 +69,42 @@ http://34.23.188.7:8100/currency-conversion/from/EUR/to/INR/quantity/10
 }
 
 
-### How does the Curreny Converter microservice able to talk to the Exchange microservice??
+###  How does the Curreny Converter microservice able to talk to the Exchange microservice??
 ------------------------------------------------------------------------------------------
-## In the converter config, a variable was specied to look up for the exchange service host
+### In the converter config, a variable was specied to look up for the exchange service host
 
 
-# When we start the exchange microservice, Kubernetes creates a env variable by for the host by adding _SERVICE_HOST to the service name in CAPS and pass it to all other services.
-## So the converter service already know which host the exchange service is running
+##When we start the exchange microservice, Kubernetes creates a env variable by for the host by adding _SERVICE_HOST to the service name in CAPS and pass it to all other services.
+### So the converter service already know which host the exchange service is running
 
-# We can see from below service logs as well
-# All service running
+### We can see from below service logs as well
+### All service running
+```sh
 ubuntu@ip-172-31-15-80:~/devops/projects/microservices/02-currency-conversion-microservice-basic$ kubectl get service
 NAME                  TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
 currency-conversion   LoadBalancer   34.118.235.99   34.23.188.7      8100:32614/TCP   32m
 currency-exchange     LoadBalancer   34.118.232.86   104.196.36.186   8000:30878/TCP   33m
 kubernetes            ClusterIP      34.118.224.1    <none>           443/TCP          12d
-## logs for exchange service
+```
+###  logs for exchange service
+```sh
 ubuntu@ip-172-31-15-80:~/devops/projects/microservices/02-currency-conversion-microservice-basic$ kubectl logs service/currency-exchange | grep HOST
 2024-06-09 00:30:14.495  INFO 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : KUBERNETES_SERVICE_HOST - 34.118.224.1
 2024-06-09 00:30:14.590  INFO 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : CURRENCY_CONVERSION_SERVICE_HOST - 34.118.235.99
 2024-06-09 00:30:14.592  INFO 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : CURRENCY_EXCHANGE_SERVICE_HOST - 34.118.232.86
 2024-06-09 00:30:14.598  INFO 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : HOSTNAME - currency-exchange-59f85d9b8b-zrgkz
-## Logs for converter service
-
+```
+###  Logs for converter service
+```sh
 ubuntu@ip-172-31-15-80:~/devops/projects/microservices/02-currency-conversion-microservice-basic$ kubectl logs service/currency-conversion | grep HOST
 Found 2 pods, using pod/currency-conversion-846d8754fd-cjncs
 2024-06-09 00:31:43.714  INFO [currency-conversion,,,] 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : KUBERNETES_SERVICE_HOST - 34.118.224.1
 2024-06-09 00:31:43.716  INFO [currency-conversion,,,] 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : CURRENCY_CONVERSION_SERVICE_HOST - 34.118.235.99
 2024-06-09 00:31:43.717  INFO [currency-conversion,,,] 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : CURRENCY_EXCHANGE_SERVICE_HOST - 34.118.232.86
 2024-06-09 00:31:43.723  INFO [currency-conversion,,,] 1 --- [           main] i.m.c.u.e.EnvironmentConfigurationLogger : HOSTNAME - currency-conversion-846d8754fd-cjncs
+```
 
-
-### Service Discovery and Load balancing
+###  Service Discovery and Load balancing
 ----------------------------------------
 If you provide the host variables like this, what if the echnage service is started after the conversion service. K8 wont pass the env variable in this case explicitely
 The better way to do is to update the deployment file of the conversion service with a env variable http://currency-exchange
@@ -111,34 +117,34 @@ The better way to do is to update the deployment file of the conversion service 
                key: CURRENCY_EXCHANGE_SERVICE_HOST
                name: currency-conversion-config-map
 
-## When we do a service name passing like this as env var, K8 will automatically do the Service discovery and also Load balancing for us.
-## So , if the exchange service now has 2 pods, instead of 1, converter will load balance between both pods.
+### When we do a service name passing like this as env var, K8 will automatically do the Service discovery and also Load balancing for us.
+### So , if the exchange service now has 2 pods, instead of 1, converter will load balance between both pods.
 
 
-### Centralised Config management
+###  Centralised Config management
 -----------------------------------
  WE can create a config map and keep all configs centralised
  00-configmap-currency-conversion.yaml
-
-	 `apiVersion: v1
+```sh
+	  apiVersion: v1
 	data:
 	  CURRENCY_EXCHANGE_SERVICE_HOST: http://currency-exchange
 	kind: ConfigMap
 	metadata:
 	  name: currency-conversion-config-map
-	  namespace: default`
-
-## We can deply this yaml as  a config map
+	  namespace: default
+```
+### We can deply this yaml as  a config map
 ubuntu@ip-172-31-15-80:~/devops/projects/microservices/02-currency-conversion-microservice-basic$ kubectl apply -f 00-configmap-currency-conversion.yaml 
 configmap/currency-conversion-config-map created
-## See the configmap craeted. All services with the env value refernce willl read from here when specified. 
+### See the configmap craeted. All services with the env value refernce willl read from here when specified. 
 $ kubectl get configmaps
 NAME                             DATA   AGE
 currency-conversion-config-map   1      85s
 kube-root-ca.crt                 1      12d
 
 
- ## in the deployment file of the service, we can ask it to pick it up from the config map
+ ### in the deployment file of the service, we can ask it to pick it up from the config map
 
   - name: CURRENCY_EXCHANGE_SERVICE_HOST
         
@@ -148,13 +154,13 @@ kube-root-ca.crt                 1      12d
                name: currency-conversion-config-map`
 
 
-## INGRESS
+### INGRESS
 ------------
 
 Load Balancers are really expensive as these have to be higly available. Its is very expensive to have 1000 LBs for 1000 services.
 Instead we can create a Ingress and route to appropiate services.
 
-# Change the service type to NodePort in all deployment.yaml filrs
+##Change the service type to NodePort in all deployment.yaml filrs
 
 and apply the ingress.yaml
 
@@ -164,7 +170,7 @@ ubuntu@ip-172-31-15-80:~/devops/projects/microservices$ kubectl get ingress
 NAME              CLASS    HOSTS   ADDRESS   PORTS   AGE
 gateway-ingress   <none>   *                 80      13s
 `
-# kubectl get ingress
+##kubectl get ingress
 NAME              CLASS    HOSTS   ADDRESS         PORTS   AGE
 gateway-ingress   <none>   *       34.111.47.228   80      10m
 
@@ -173,7 +179,7 @@ Now we can access both exchange and conversion service by using same ingress url
 http://34.111.47.228/currency-exchange/from/EUR/to/INR
 http://34.111.47.228/currency-conversion/from/EUR/to/INR/quantity/100
 
-# details of ingress.yaml
+##details of ingress.yaml
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
