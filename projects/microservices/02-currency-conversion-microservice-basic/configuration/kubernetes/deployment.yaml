@@ -6,7 +6,7 @@ metadata:
   name: currency-conversion
   namespace: default
 spec:
-  replicas: 1 #CHANGE
+  replicas: 2 #CHANGE
   minReadySeconds: 45
   selector:
     matchLabels:
@@ -25,16 +25,14 @@ spec:
       - image: in28min/currency-conversion:0.0.1-RELEASE #CHANGE
         imagePullPolicy: IfNotPresent
         name: currency-conversion
-        env:
-        - name: CURRENCY_EXCHANGE_SERVICE_HOST
-
-        #You can actually pick up from the configMap like below
+        # env:
+        #   - name: CURRENCY_EXCHANGE_SERVICE_HOST
         #     value: http://currency-exchange
         
-         valueFrom: 
-            configMapKeyRef:
-               key: CURRENCY_EXCHANGE_SERVICE_HOST
-               name: currency-conversion-config-map
+        #     valueFrom: 
+        #       configMapKeyRef:
+        #         key: CURRENCY_EXCHANGE_SERVICE_HOST
+        #         name: currency-conversion-config-map
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
 ---
@@ -54,4 +52,3 @@ spec:
     app: currency-conversion
   sessionAffinity: None #CHANGE
   type: LoadBalancer
-  #type: NodePort
