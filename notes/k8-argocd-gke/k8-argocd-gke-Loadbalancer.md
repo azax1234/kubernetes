@@ -64,3 +64,8 @@ argocd-server                             LoadBalancer   34.118.239.131   35.188
 argocd-server-metrics                     ClusterIP      34.118.230.83    <none>          8083/TCP                     87m
 ```
 ***Access with 35.188.215.80***
+
+1. **Get Argo CD Initial Admin Password**:
+   ```sh
+   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+   ```
