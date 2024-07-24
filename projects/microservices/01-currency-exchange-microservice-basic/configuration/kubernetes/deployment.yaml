@@ -65,8 +65,8 @@ spec:
     port: 8000 #CHANGE
     protocol: TCP
     targetPort: 8000 #CHANGE
-  selector:
-    app: currency-exchange
+  selector: 
+    app: currency-exchange # This is how the service finds out The pod
   sessionAffinity: None #CHANGE
   #type: LoadBalancer
   type: NodePort
