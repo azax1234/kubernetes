@@ -32,7 +32,9 @@ kubectl get events --sort-by=.metadata.creationTimestamp
 kubectl set image deployment hello-world-rest-api hello-world-rest-api=in28min/hello-world-rest-api:0.0.2.RELEASE
 kubectl get events --sort-by=.metadata.creationTimestamp
 kubectl get componentstatuses
+## To see pods in all namespaces
 kubectl get pods --all-namespaces
+kubectl get pods -A 
  
 kubectl get events
 kubectl get pods
@@ -128,30 +130,19 @@ kubectl get services --all-namespaces --sort-by=.spec.type
 
 kubectl get services --all-namespaces --sort-by=.metadata.name
 
+##To knmow details about the k8 cluster
 kubectl cluster-info
-
 kubectl cluster-info dump
-
 kubectl top node
-
 kubectl top pod
-
 kubectl get services
-
 kubectl get svc
-
 kubectl get ev
-
 kubectl get rs
-
 kubectl get ns
-
 kubectl get nodes
-
 kubectl get no
-
 kubectl get pods
-
 kubectl get po
  
 kubectl delete all -l app=hello-world-rest-api

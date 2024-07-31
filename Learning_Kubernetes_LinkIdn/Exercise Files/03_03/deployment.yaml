@@ -1,0 +1,56 @@
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-info-deployment
+  namespace: development
+  labels:
+    app: pod-info
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pod-info
+  template:
+    metadata:
+      labels:
+        app: pod-info
+    spec:
+      containers:
+      - name: pod-info-container
+        image: kimschles/pod-info-app:latest
+        ports:
+        - containerPort: 3000
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pod-info-service
+  labels:
+    app: pod-info
+    #version: v1
+  namespace: development
+spec:
+  allocateLoadBalancerNodePorts: true
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector: #service mapping to a pod. Service downt map to a deployment. A pod maps toa  deployment
+    app: pod-info
+  sessionAffinity: None #sticky user sessions
+  type: LoadBalancer
+

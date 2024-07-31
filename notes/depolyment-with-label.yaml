@@ -27,6 +27,7 @@ spec:
         version: v1
     spec:
       containers: #a pod can contain multiple containers
+      # ( the '-' indicates its  a list as pod can have more thasn one container)
       - image: in28min/hello-world-rest-api:0.0.1.RELEASE
         imagePullPolicy: IfNotPresent #Pull from docker if not persent, the other option will be 'Always'
         name: hello-world-rest-api
