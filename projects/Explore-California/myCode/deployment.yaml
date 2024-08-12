@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  explore-california
+  namespace: default
+  labels:
+    app:  explore-california
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app:  explore-california
+  template:
+    metadata:
+      labels:
+        app:  explore-california
+    spec:
+      containers:
+      - name: explore-california-container
+        image: azax1234/explore-california:4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app:  explore-california
+  name:  explore-california
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    nodePort: 30376
+    targetPort: 80
+  type: LoadBalancer # Change to ClusterIP in case using an Ingress
+  selector: #service mapping to a pod. Service downt map to a deployment. A pod maps to a  deployment
+    app:  explore-california
+  sessionAffinity: None #sticky user sessions
